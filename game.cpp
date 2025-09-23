@@ -6,7 +6,7 @@
 #include <thread>
 
 
-//can use thios so you do not have to
+//can use this so you do not have to
 //write std::string every time
 //or all std
 using namespace std;
@@ -18,12 +18,33 @@ void clearScreen()
 }
 
 /*
-void isValid(int[][] map, player_start_x, player_start_y)
-{
-
-}
+    Using pointers as a way to keep track of player_x and player_y,
+    without having to return anything and update.
 */
-
+void options(string move, int *player_x, int *player_y, int rows, int cols,  int (&map)[3][3])
+{
+        if (move == "down" && *player_y + 1 < rows && map[*player_x][*player_y + 1] != 1)
+        {
+            (*player_y) += 1;
+        }
+        else if (move == "up" && *player_y - 1 >= 0 && map[*player_x][*player_y - 1] != 1 )
+        {
+            (*player_y) -= 1;
+        }
+        else if (move == "right" && *player_x + 1 < cols && map[*player_x + 1][*player_y] != 1)
+        {
+            (*player_x) += 1;
+        }
+        else if (move == "left" && *player_x - 1 >= 0 && map[*player_x - 1][*player_y] != 1)
+        {
+            (*player_x) -= 1;
+        }
+        else
+        {
+            cout << "You have hit a wall\n";
+            this_thread::sleep_for(1.2s);
+        }
+}
 
 int main()
 {
@@ -60,28 +81,9 @@ int main()
     while (!end_value)
     {
         cout << "X:" << player_x << " Y: " << player_y << "\n";
+        //Takes in a move and then deciphers what to do with that move
         cin >> move;
-        if (move == "down" && player_x + 1 <= rows && map[player_x + 1][player_y] != 1)
-        {
-            player_x += 1;
-        }
-        else if (move == "right" && player_y + 1 <= cols)
-        {
-            player_y += 1;
-        }
-        else if (move == "up" && player_x - 1 >= 0)
-        {
-            player_x -= 1;
-        }
-        else if (move == "left" && player_y - 1 >= 0)
-        {
-            player_y -= 1;
-        }
-        else
-        {
-            cout << "You have hit a wall\n";
-            this_thread::sleep_for(1.2s);
-        }
+        options(move, &player_x, &player_y, rows, cols, map);
         clearScreen();
 
     }
