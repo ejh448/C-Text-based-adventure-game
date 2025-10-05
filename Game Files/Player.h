@@ -19,9 +19,9 @@ struct Player {
 
     void level_up() 
     {
-        if (xp >= 100 * level)
+        if (xp >= 10 * level)
         {
-            xp -= 100 * level;
+            xp -= 10 * level;
             level++;
             cout << "You have leveled up!" << level << "\n";
         }
@@ -53,6 +53,7 @@ struct Player {
     void xp_gain(int random_factor, int enemy_level)
     {
         xp += level * (enemy_level * 0.10) * random_factor;
+        level_up();
     }
 };
 
