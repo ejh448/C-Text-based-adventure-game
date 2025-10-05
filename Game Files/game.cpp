@@ -170,7 +170,7 @@ int main()
     TextColors text_colors;
     Player player;
     Game_Dialogue dialogue;
-    
+
 
     //clears the screen to start
     clearScreen();
@@ -185,15 +185,16 @@ int main()
     clearScreen();
 
     //constants & initializers for game loop
-    const int rows = 5;
-    const int cols = 5;
-    const int initial_x = 1;
-    const int initial_y = 1;
-    string move;
-    Map myMap(rows,cols);
+    const int MAP_ROWS = 5;
+    const int MAP_COLS = 5;
+    const int INITIAL_X = 1;
+    const int INITIAL_Y = 1;
     
-    player.player_x = initial_x;
-    player.player_y = initial_y;
+    string move;
+    Map myMap(MAP_ROWS, MAP_COLS);
+    
+    player.player_x = INITIAL_X;
+    player.player_y = INITIAL_Y;
     
     bool end_value = true;
     
