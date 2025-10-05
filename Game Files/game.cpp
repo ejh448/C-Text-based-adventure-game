@@ -123,7 +123,7 @@ void Fight(Player &p)
     Using pointers as a way to keep track of player_x and player_y,
     without having to return anything and update.
 */
-void options(string move, Player &p, int *player_x, int *player_y, int rows, int cols, int (&map)[3][3])
+void moves(string move, Player &p, int *player_x, int *player_y, int rows, int cols, int (&map)[3][3])
 {
     int new_x = *player_x;
     int new_y = *player_y;
@@ -161,9 +161,12 @@ int main()
 {
     //initializing random seeding
     srand(time(0));
+    const int rows = 3;
+    const int cols = 3;
+    
+    Map myMap(5,8);
+    myMap.print_map();
 
-    Map myMap;       // random size map
-    myMap.print();   // show map
     this_thread::sleep_for(20s);
 
     //instantiating text colors
@@ -189,11 +192,11 @@ int main()
     clearScreen();
 
     //2d array for world
-    const int rows = 3;
-    const int cols = 3;
-    int map[rows][cols] = {{0,0,0},
-                           {0,1,0},
-                           {0,2,0}};
+
+
+
+    int map[3][3] = {{}};
+   
 
     //gameloop
     int end_value = 0;
@@ -211,7 +214,7 @@ int main()
         //Takes in a move and then deciphers what to do with that move
         cout << text_colors. default_color << "Please enter your move: ";
         cin >> move;
-        options(move, player ,&player.player_x, &player.player_y, rows, cols, map);
+        moves(move, player ,&player.player_x, &player.player_y, rows, cols, map);
         clearScreen();
 
     }
