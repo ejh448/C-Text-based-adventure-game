@@ -1,7 +1,5 @@
 #include <iostream>
 #include <string>
-//#include <vector>
-//for system clear
 #include <cstdlib>
 #include <chrono>
 #include <thread>
@@ -11,9 +9,13 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Text_Colors.h"
-//can use this so you do not have to
-//write std::string every time
-//or all std
+#include "MapDesigner.h"
+
+/*
+    can use this so you do not have to
+    write std::string / std::chrono_litrerals 
+    every time
+*/
 using namespace std;
 using namespace std::chrono_literals;
 
@@ -31,12 +33,11 @@ void animateDots(int count = 3, int delay = 500) {
     cout << "\n";
 }
 
-void Fight(Player &p)
+void Fight(Player &p, TextColors text_colors)
 {
     Enemy enemy;
-    TextColors text_colors; 
     int monster_type = (rand() % 3);
-    int fight_end = 0;
+    bool fight_end = false;
 
     //could add leveling system and balance for fight here..
 
@@ -46,7 +47,7 @@ void Fight(Player &p)
     string move;
     while (!fight_end)
     {
-        srand(time(0));
+        
        
         cout << text_colors.default_color << enemy.names[monster_type] << "s" << text_colors.red << " HEALTH: " << enemy.health << "\n";
         cout << "YOUR HEALTH: " << text_colors.cyan  << p.health << "\n" << text_colors.default_color;
@@ -56,72 +57,60 @@ void Fight(Player &p)
         
             if (move == "attack")
             {
-                int attack = rand() % ((p.health / 2) - 1) + (p.level * .13);
+                int attack = p.player_attack(rand()); // have an issue when player health is around 2, scales infinitely...
                 cout << "You Damaged the " << enemy.names[monster_type] << " " << text_colors.red << attack << text_colors.default_color << " points...\n";
-                enemy.health -= attack;
+                enemy.health -=  attack;
                 this_thread::sleep_for(1.5s);
-                if (enemy.health > 0)
-                {
-                    cout << "The enemy is attacking";
-                    animateDots();
-                    int enemy_attack = rand() % ((enemy.health / 2) - 1) + (enemy.level * .13);
-                    cout << "The " << enemy.names[monster_type] << " attacked!\nDoing " << text_colors.cyan << enemy_attack << text_colors.default_color << " damage!\n";
-                    p.health -= enemy_attack;
-                }
-                else if (enemy.health <= 0)
+
+                if (enemy.health <= 0)
                 {
                     cout << "You have won the fight!!! \n";
                     int randomFactor = rand() % 99 + 1;
-                    double xpGain = p.level * (enemy.level * 0.10) * randomFactor;
-                    p.xp += xpGain;
-                    cout << "HERE IS YOUR XP " << text_colors.cyan << p.xp << text_colors.default_color << "\n";
-                    this_thread::sleep_for(5s);
-                    fight_end = 1;
+                    p.xp_gain(randomFactor, p.level);
+                    cout << "\nHERE IS YOUR XP " << text_colors.cyan << p.xp << text_colors.default_color << "\n";
+                    this_thread::sleep_for(3s);
+                    fight_end = true;
+                    clearScreen();
+                    continue;
                 }
-                else if (p.health <= 0)
+
+                //if enemy does not run out of health keep attacking.
+                cout << "The enemy is attacking";
+                animateDots();
+                int enemy_attack = enemy.enemy_attack(rand());
+                cout << "The " << enemy.names[monster_type] << " attacked!\nDoing " << text_colors.cyan << enemy_attack << text_colors.default_color << " damage!\n";
+                p.health -= enemy_attack;
+                this_thread::sleep_for(1.5s);
+
+                if (p.health <= 0)
                 {
                     cout << "UNFORTUNATELY YOU HAVE LOST THE FIGHT\n";
-                    this_thread::sleep_for(5s);
-                    fight_end = 1;
+                    this_thread::sleep_for(1.5s);
+                    fight_end = true;
                 }
-                this_thread::sleep_for(3s);
             }
             else if (move == "heal")
             {
-                if (p.potions > 0)
-                {
-                    p.health += 25;
-                    p.potions -= 1;
-                    if (p.health > 100)
-                    {
-                        p.health = 100;
-                    }
-
-                }
-                else if (p.potions <= 0)
-                {
-                    cout << "You are unfortunately out of POTIONS...\n";
-                    this_thread::sleep_for(3s);
-                } 
+                p.player_heal();
             }
             else if (move == "run")
             {
                 if (enemy.health > 45)
                 {
                     cout << text_colors.red << "Sorry you cannot run..\n This enemy is TOO powerful...\n";
-                    this_thread::sleep_for(3s);
+                    this_thread::sleep_for(1.5s);
                 }
                 else if (enemy.health < 45 && enemy.health > 0)
                 {
                     cout << "YOU RAN SO FAR AWAY!\n";
-                    this_thread::sleep_for(3s);
-                    fight_end = 1;
+                    this_thread::sleep_for(1.5s);
+                    fight_end = true;
                 }
                 else
                 {
                     cout << "The enemy evaporated.... WEIRD!\n";
-                    this_thread::sleep_for(3s);
-                    fight_end = 1;
+                    this_thread::sleep_for(1.5s);
+                    fight_end = true;
                 }
             }
             else 
@@ -137,7 +126,7 @@ void Fight(Player &p)
     Using pointers as a way to keep track of player_x and player_y,
     without having to return anything and update.
 */
-void options(string move, Player &p, int *player_x, int *player_y, int rows, int cols, int (&map)[3][3])
+void moves(string move, Player &p, int *player_x, int *player_y, int rows, int cols,  vector<vector<int>> &map, TextColors text_colors)
 {
     int new_x = *player_x;
     int new_y = *player_y;
@@ -152,17 +141,18 @@ void options(string move, Player &p, int *player_x, int *player_y, int rows, int
         new_x -= 1;
     else
     {
-        cout << "You have hit a wall\n";
-        this_thread::sleep_for(1.2s);
+        //this is the case where the player hits a wall.. Dont need to do anything here currently
         return;
     }
 
-    *player_x = new_x;
+    //This updates the players x and y to the new x and y values
+    *player_x = new_x; 
     *player_y = new_y;
 
+    //checks if spot on the map is an enemy, then calls fight()
     if (map[*player_y][*player_x] == 2)
     {
-        Fight(p);
+        Fight(p, text_colors);
     }
 }
 
@@ -173,56 +163,54 @@ void options(string move, Player &p, int *player_x, int *player_y, int rows, int
 
 int main()
 {
-    //instantiating text colors
+    //initializing random seeding
+    srand(time(0));
+
+    //initializing objects
     TextColors text_colors;
-
-    //character info
     Player player;
-
-    //create dialogue
     Game_Dialogue dialogue;
+
 
     //clears the screen to start
     clearScreen();
     cout << dialogue.ask_name_text; //displays text asking for name
     cin >> player.name; // takes user input for name
     clearScreen();
-
     cout << text_colors.red << player.name << text_colors.default_color << ", The name of a Fierce warrior!\n";
-    this_thread::sleep_for(3s);
+    this_thread::sleep_for(1.5s);
     clearScreen();
     cout << dialogue.game_start_text;
     this_thread::sleep_for(1s);
     clearScreen();
 
-    //2d array for world
-    const int rows = 3;
-    const int cols = 3;
-    int map[rows][cols] = {{0,0,0},
-                           {0,1,0},
-                           {0,2,0}};
-
-    //gameloop
-    int end_value = 0;
-    player.player_x = 0;
-    player.player_y = 0;
+    //constants & initializers for game loop
+    const int MAP_ROWS = 5;
+    const int MAP_COLS = 5;
+    const int INITIAL_X = 1;
+    const int INITIAL_Y = 1;
+    
     string move;
-
-    while (!end_value)
+    Map myMap(MAP_ROWS, MAP_COLS);
+    
+    player.player_x = INITIAL_X;
+    player.player_y = INITIAL_Y;
+    
+    bool end_value = true;
+    
+    while (end_value)
     {
         cout << text_colors.red << "Player Location: \n";
         cout << "X:" << player.player_x << " Y:" << player.player_y << "\n";
+        myMap.print_map(player.player_x, player.player_y);
         cout << text_colors.cyan << "Options: \n* up\n* down\n* left\n* right\n* map\n* inventory\n";
-        
-        
-        //Takes in a move and then deciphers what to do with that move
+       
         cout << text_colors. default_color << "Please enter your move: ";
         cin >> move;
-        options(move, player ,&player.player_x, &player.player_y, rows, cols, map);
+        moves(move, player, &player.player_x, &player.player_y, myMap.rows, myMap.cols, myMap.vec, text_colors);
         clearScreen();
-
     }
 
     return 0;
 
-}
+} 
