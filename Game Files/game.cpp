@@ -11,6 +11,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Text_Colors.h"
+#include "MapDesigner.h"
 //can use this so you do not have to
 //write std::string every time
 //or all std
@@ -46,7 +47,7 @@ void Fight(Player &p)
     string move;
     while (!fight_end)
     {
-        srand(time(0));
+        
        
         cout << text_colors.default_color << enemy.names[monster_type] << "s" << text_colors.red << " HEALTH: " << enemy.health << "\n";
         cout << "YOUR HEALTH: " << text_colors.cyan  << p.health << "\n" << text_colors.default_color;
@@ -56,15 +57,15 @@ void Fight(Player &p)
         
             if (move == "attack")
             {
-                int attack = rand() % ((p.health / 2) - 1) + (p.level * .13);
+                int attack = p.player_attack(rand());
                 cout << "You Damaged the " << enemy.names[monster_type] << " " << text_colors.red << attack << text_colors.default_color << " points...\n";
-                enemy.health -= attack;
+                enemy.health -=  p.player_attack(rand());
                 this_thread::sleep_for(1.5s);
                 if (enemy.health > 0)
                 {
                     cout << "The enemy is attacking";
                     animateDots();
-                    int enemy_attack = rand() % ((enemy.health / 2) - 1) + (enemy.level * .13);
+                    int enemy_attack = enemy.enemy_attack(rand());
                     cout << "The " << enemy.names[monster_type] << " attacked!\nDoing " << text_colors.cyan << enemy_attack << text_colors.default_color << " damage!\n";
                     p.health -= enemy_attack;
                 }
@@ -72,8 +73,7 @@ void Fight(Player &p)
                 {
                     cout << "You have won the fight!!! \n";
                     int randomFactor = rand() % 99 + 1;
-                    double xpGain = p.level * (enemy.level * 0.10) * randomFactor;
-                    p.xp += xpGain;
+                    p.xp_gain(randomFactor, p.level);
                     cout << "HERE IS YOUR XP " << text_colors.cyan << p.xp << text_colors.default_color << "\n";
                     this_thread::sleep_for(5s);
                     fight_end = 1;
@@ -88,21 +88,7 @@ void Fight(Player &p)
             }
             else if (move == "heal")
             {
-                if (p.potions > 0)
-                {
-                    p.health += 25;
-                    p.potions -= 1;
-                    if (p.health > 100)
-                    {
-                        p.health = 100;
-                    }
-
-                }
-                else if (p.potions <= 0)
-                {
-                    cout << "You are unfortunately out of POTIONS...\n";
-                    this_thread::sleep_for(3s);
-                } 
+                p.player_heal();
             }
             else if (move == "run")
             {
@@ -173,6 +159,13 @@ void options(string move, Player &p, int *player_x, int *player_y, int rows, int
 
 int main()
 {
+    //initializing random seeding
+    srand(time(0));
+
+    Map myMap;       // random size map
+    myMap.print();   // show map
+    this_thread::sleep_for(20s);
+
     //instantiating text colors
     TextColors text_colors;
 
