@@ -463,7 +463,7 @@ class Cube{
         {
             int move = dis(gen);
             switch (move) {
-                case 1: top_row_left_rotation(); cout << "left"; break;
+                case 1: top_row_left_rotation(); break;
                 case 2: top_row_right_rotation(); break;
                 case 3: bottom_row_left_rotation(); break;
                 case 4: bottom_row_right_rotation(); break;
